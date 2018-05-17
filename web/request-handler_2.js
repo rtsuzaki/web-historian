@@ -46,36 +46,34 @@ exports.handleRequest = function (req, res) {
     });
     req.on('end', function () {
       post = qs.parse(body);
-      
+      // TODO
+      //test url with url-regex
+      //if true, then search for it in list (archive.isUrlInList)
+      //if found, prepare content from archive folder to response
+      //if not found, then add url to list for worker to scrape.
+          //repsond with "come back later" message
       if (urlRegex().test(post.url)) {
-        
-        archive.isUrlArchived(post.url, function(isArchived) {
-          console.log('isArchived', isArchived);
-        });
-
-        // //check if URL is archived
-        // if (archive.isUrlArchived(url,cb)) {
-        //   //if archived, get from archive
-        //   archive.getFromArchive(url)
-        //   //write response
-          
-
-        // } else {
-        //   //read list
-        //   archive.readListOfUrls(cb)
-        //   //if url is listed
-        //   if (archive.isUrlInList(url, cb)) {
-        //     //respond with we're working on it
+        // check if its on the list
+        // archive.readListOfUrls(function(error, data) {
+        //   if(error) {
+        //     console.log('error reading list file', error);
         //   } else {
-        //     archive.addUrlToList(url,cb)
-        //     //respond with we're working on it
+        //     console.log('(list) data', data);
         //   }
-        // }
-
-
+        // });
+        // function(data) {
+        //   if(error) {
+        //     console.log('error reading list file', error);
+        //   } else {
+        //     console.log('(list) data', data);
+        //   }
+        // });
+        archive.isUrlInList(post.url, function(){});
       } else {
+
         //respond back to user that the url is invalid
       }
+
 
       res.writeHead(200, {'Content-Type': 'text/html'});
       res.write('you requested to archive URL = ' + post.url);
