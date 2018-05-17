@@ -28,63 +28,72 @@ exports.initialize = function(pathsObj) {
 // exports.siteList = '';
 
 exports.readListOfUrls = function(callback) {
-  // fs.readFile(this.paths.list, 'utf8', (error, data) => {
-  //   if (error) console.log('error', error);
-  //   console.log(JSON.stringify(data));
-  // });
-  // fs.readFile(this.paths.list, 'utf8', callback => {
-  //   if (error) console.log('error', error);
-  //   console.log(JSON.stringify(data));
-  // });
-  fs.readFile(this.paths.list, 'utf8', callback);
+  fs.readFile(this.paths.list, 'utf8', (error, data) => {
+    if (error) {
+      console.log('error', error);
+      return;
+    } else {
+      var urlArray = data.split('\n');
+      urlArray.filter(url => url.length);
+      callback(urlArray);
+    }
+  });
 };
 
 exports.isUrlInList = function(url, callback) {
-  // call readlistOfUrls using 'callback' that will return file in memory
-  // var data = '';
-  // var error = '';
-  var readListOfUrlsCallback = function(error, data) {
-    if(error) {
-      console.log('error reading list file', error);
-      //return error;
-    } else {
-      console.log('(list) data', data);
-      // return data;
+
+  var result = false;
+  console.log('url', url);
+  this.readListOfUrls(function(urlArray) {
+    if (urlArray.includes(url)) {
+      result = true;
     }
-  };
-
-  // this.readListOfUrls(readListOfUrlsCallback(error, data));
-  // console.log('--- data', data);
-  // console.log('--- error', error);
-  this.readListOfUrls(readListOfUrlsCallback);
-
-// console.log('this.siteList', this.siteList); // happens b/f readListOfUrls finishes
-
-  // have to search returned file in memory for 'url'
-  // if it exists, set it on the callback
-  // else set null on callback
+    callback(result);
+  });
+  
 };
 
 exports.addUrlToList = function(url, callback) {
+  var archive = this;
+  this.isUrlInList(url, function(result) {
+    if (result) {
+      //then url is already in list so don't need to add.
+    } else {
+      fs.appendFile(archive.paths.list, url, (err) => {
+        if (err) {
+          return;
+        } else {
+          console.log('The url was appended to the list');
+          callback(result);
+        }
+      });
+    }
+  });
 };
 
 exports.isUrlArchived = function(url, callback) {
-// console.log('url',url);
-//   var parsedHost = urlParser.parse(url,true);
-// console.log('parsedHost',parsedHost);
-//   // parsedHost = parsedHost.host;
-// console.log('parsedHost.hostname',parsedHost.hostname);
 
-//   var hostPath = this.paths.archivedSites + '/' + parsedHost;
-  var hostPath = urlParser.parse(url).pathname
-console.log('hostPath', hostPath);
+  var parsedHost = urlParser.parse(url, false);
 
-  fs.access(hostPath, fs.constants.F_OK, (callback) => {
-    console.log(`${hostPath} ${callback ? false : true}`);  
+  // parsedHost = ((parsedHost.path).split('.'))[1];
+  parsedHost = parsedHost.path;
+  console.log('parsedHost', parsedHost);
+  var hostPath = this.paths.archivedSites + '/' + parsedHost;
+  console.log(hostPath);
+  var result = false;
+  fs.access(hostPath, (err) => {
+    if (err) {
+      return;
+    } else {
+      console.log('TRUEEEEEEEEEEEEE');
+      result = true;
+      console.log(result);
+      callback(result);
+    }
   });
 };
 
 exports.downloadUrls = function(urls) {
 };
 
-exports.getFromArchive = function(url) {}
+exports.getFromArchive = function(url) {};

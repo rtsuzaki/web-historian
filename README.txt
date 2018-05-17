@@ -1,5 +1,5 @@
 npm install
-npm nodemon -g install
+npm install -g nodemon
 nodemon basic-server.js
 npm test
 
