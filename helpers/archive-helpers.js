@@ -57,14 +57,15 @@ exports.isUrlInList = function(url, callback) {
 };
 
 exports.addUrlToList = function(url, callback) {
+  console.log('addUrlToList url', url);
   var archive = this;
   this.isUrlInList(url, function(result) {
     if (result) {
-      //then url is already in list so don't need to add.
+      console.log('The url is already in list');
     } else {
       fs.appendFile(archive.paths.list, url, (err) => {
         if (err) {
-          return;
+          callback(err);
         } else {
           console.log('The url was appended to the list');
           callback(result);
@@ -76,18 +77,14 @@ exports.addUrlToList = function(url, callback) {
 
 exports.isUrlArchived = function(url, callback) {
 
-  // var parsedHost = urlParser.parse(url, false);
-
-  // parsedHost = ((parsedHost.path).split('.'))[1];
-  // parsedHost = parsedHost.path;
-  // console.log('parsedHost', parsedHost);
   var hostPath = this.paths.archivedSites + '/' + url;
-  console.log(hostPath);
+
   var result = false;
   fs.access(hostPath, (err) => {
     if (err) {
       // TODO: how to handle errors?
-      console.log('isUrlArchived#error', err);
+      console.error('isUrlArchived#error', err);
+      // console.log('line86', callback)
       callback(result);
     } else {
       result = true;
@@ -98,62 +95,68 @@ exports.isUrlArchived = function(url, callback) {
 };
 
 exports.downloadUrls = function(urls) {
-  // for each url
-  // do a get request & store the response as a file at ../archive/url
-  if(urls !== null && urls.length > 0) {
+  var thisVar = this;
+  if (urls !== null && urls.length > 0) {
     urls.forEach(function(url) {
       http.get('http://' + url, (resp) => {
         resp.setEncoding('utf8');
-        let rawData = '';
+        let rawData = '';
 
-        // A chunk of data has been recieved.
-        resp.on('data', (chunk) => {
-          rawData += chunk;
-        });
+        // A chunk of data has been recieved.
+        resp.on('data', (chunk) => {
+          rawData += chunk;
+        });
 
-        // The whole response has been received. Print out the result.
-        resp.on('end', () => {
-          //console.log(JSON.parse(data).explanation);
-          //console.log(JSON.parse(data));
+        // The whole response has been received. Print out the result.
+        resp.on('end', () => {
           try {
-            const parsedData = JSON.parse(rawData);
-            console.log('downloadUrls received:', parsedData);
+            thisVar.addWebsiteToArchive({ siteUrl: url, html: rawData });
           } catch (e) {
             console.error(`downloadUrls Got error on END: ${e.message}`);
           }
-        });
+        });
 
-        resp.on("error", (err) => {
-          //console.log("Error: " + err.message);
+        resp.on('error', (err) => {
+          //console.log("Error: " + err.message);
           console.error(`downloadUrls Got error: ${e.message}`);
         });
       });
     });
   }
-
-  // var thisUrls = urls;
-  // var options = {
-  //   urls: thisUrls,
-  //   directory: this.paths.archivedSites,
-  // };
-
-  // scrape(options).then((result) => {
-  //   //this.addWebsiteToArchive(result);
-  //   console.log('downloadUrls downloading result:', result);
-  // }).catch((err) => {
-  //   console.log('downloadUrls#err', err);
-  // });
-  // scrape({
-  //   urls: [urls],
-  //   urlFilter: function(url){
-  //     return url.indexOf('http://example.com') === 0;
-  //   },
-  //   directory: this.paths.archivedSites + '/'
-  // }).then(console.log).catch(console.log);
 };
 
+// 'archive' will be { siteUrl: url, html: rawData }
 exports.addWebsiteToArchive = function(archive) {
-  
-}
+  // receives:
+  // {"siteUrl":"www.google.com","html":"<!doctype html> ..."}
 
-exports.getFromArchive = function(url) {};
+  fs.writeFile(this.paths.archivedSites + '/' + archive.siteUrl, archive.html, (err) => {
+    if (err) { throw err; }
+    console.log('addWebsiteToArchive wrote file for URL', archive.siteUrl);
+  });
+};
+
+exports.getFromArchive = function(url, renderPage) {
+  var archiveModule = this;
+  
+  var cb = function(isArchived) {
+    if (!isArchived) {
+      archiveModule.addUrlToList(url);
+      renderPage(false);
+    } else {
+      fs.readFile(archiveModule.paths.archivedSites + '/' + url, 'utf8', (error, data) => {
+        if (error) {
+          console.error('error', error);
+          return;
+        } else {
+          renderPage(data);
+        }
+      });
+    }
+  };
+  
+  this.isUrlArchived(url, cb);
+  // returns true or false
+
+  // callback(this.isUrlArchived(url, cb));
+};

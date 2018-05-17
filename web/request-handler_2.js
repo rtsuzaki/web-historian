@@ -13,7 +13,7 @@ exports.handleRequest = function (req, res) {
       fs.readFile(archive.paths.siteAssets + '/index.html', function(err, data) {
         if (err) {
           res.writeHead(404, {'Content-Type': 'text/html'});
-          return res.end("404 Not Found");
+          return res.end('404 Not Found');
         }  
         res.writeHead(200, {'Content-Type': 'text/html'});
         res.write(data);
@@ -24,7 +24,7 @@ exports.handleRequest = function (req, res) {
       fs.readFile(archive.paths.siteAssets + '/styles.css', function(err, data) {
         if (err) {
           res.writeHead(404, {'Content-Type': 'text/html'});
-          return res.end("404 Not Found");
+          return res.end('404 Not Found');
         }  
         res.writeHead(200, {'Content-Type': 'text/css'});
         res.write(data);
@@ -51,7 +51,7 @@ exports.handleRequest = function (req, res) {
       //if true, then search for it in list (archive.isUrlInList)
       //if found, prepare content from archive folder to response
       //if not found, then add url to list for worker to scrape.
-          //repsond with "come back later" message
+      //repsond with "come back later" message
       if (urlRegex().test(post.url)) {
         // check if its on the list
         // archive.readListOfUrls(function(error, data) {
@@ -68,7 +68,7 @@ exports.handleRequest = function (req, res) {
         //     console.log('(list) data', data);
         //   }
         // });
-        archive.isUrlInList(post.url, function(){});
+        archive.isUrlInList(post.url, function() {});
       } else {
 
         //respond back to user that the url is invalid

@@ -13,7 +13,7 @@ exports.handleRequest = function (req, res) {
       fs.readFile(archive.paths.siteAssets + '/index.html', function(err, data) {
         if (err) {
           res.writeHead(404, {'Content-Type': 'text/html'});
-          return res.end("404 Not Found");
+          return res.end('404 Not Found');
         }  
         res.writeHead(200, {'Content-Type': 'text/html'});
         res.write(data);
@@ -24,7 +24,7 @@ exports.handleRequest = function (req, res) {
       fs.readFile(archive.paths.siteAssets + '/styles.css', function(err, data) {
         if (err) {
           res.writeHead(404, {'Content-Type': 'text/html'});
-          return res.end("404 Not Found");
+          return res.end('404 Not Found');
         }  
         res.writeHead(200, {'Content-Type': 'text/css'});
         res.write(data);
@@ -48,40 +48,24 @@ exports.handleRequest = function (req, res) {
       post = qs.parse(body);
       
       if (urlRegex().test(post.url)) {
-        
-        archive.isUrlArchived(post.url, function(isArchived) {
-          console.log('isArchived', isArchived);
-        });
+        var populateData = function(htmlData) {
+          if (!htmlData) {
+            res.writeHead(404, {'Content-Type': 'text/html'});
+            res.write('The page with URL ' + post.url + ' is not archived.');
+            return res.end();
+          } else {
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write('http://' + htmlData);
+            return res.end();
+          }
+        };
 
-        archive.downloadUrls(['www.google.com']);
-
-        // //check if URL is archived
-        // if (archive.isUrlArchived(url,cb)) {
-        //   //if archived, get from archive
-        //   archive.getFromArchive(url)
-        //   //write response
-          
-
-        // } else {
-        //   //read list
-        //   archive.readListOfUrls(cb)
-        //   //if url is listed
-        //   if (archive.isUrlInList(url, cb)) {
-        //     //respond with we're working on it
-        //   } else {
-        //     archive.addUrlToList(url,cb)
-        //     //respond with we're working on it
-        //   }
-        // }
-
-
+        archive.getFromArchive(post.url, populateData);
       } else {
-        //respond back to user that the url is invalid
+        res.writeHead(200, {'Content-Type': 'text/html'});
+        res.write('you requested to archive URL = ' + post.url);
+        return res.end();
       }
-
-      res.writeHead(200, {'Content-Type': 'text/html'});
-      res.write('you requested to archive URL = ' + post.url);
-      return res.end();
     });
   } else {
     console.log('---------> requestHandler');
