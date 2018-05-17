@@ -53,6 +53,8 @@ exports.handleRequest = function (req, res) {
           console.log('isArchived', isArchived);
         });
 
+        archive.downloadUrls(['www.google.com']);
+
         // //check if URL is archived
         // if (archive.isUrlArchived(url,cb)) {
         //   //if archived, get from archive
